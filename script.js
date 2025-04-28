@@ -47,6 +47,34 @@ function draw(e) {
     context.moveTo(x, y);
 }
 
+function startDrawingTouch(e) {
+    e.preventDefault();
+    drawing = true;
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    lastX = touch.clientX - rect.left;
+    lastY = touch.clientY - rect.top;
+}
+
+function drawTouch(e) {
+    e.preventDefault();
+    if (!drawing) return;
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    [lastX, lastY] = [x, y];
+}
+
+canvas.addEventListener('touchstart', startDrawingTouch, { passive: false });
+canvas.addEventListener('touchmove', drawTouch, { passive: false });
+canvas.addEventListener('touchend', stopDrawing);
+
 canvas.addEventListener('mousedown', startPosition);
 canvas.addEventListener('mouseup', endPosition);
 canvas.addEventListener('mousemove', draw);
