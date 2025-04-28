@@ -1,14 +1,18 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById('drawing-canvas');
+const context = canvas.getContext('2d');
 
-const colorPicker = document.getElementById('colorPicker');
-const sizePicker = document.getElementById('sizePicker');
-const clearButton = document.getElementById('clearButton');
-const saveButton = document.getElementById('saveButton');
+const backgroundImage = new Image();
+backgroundImage.src = 'page.png';
 
-let drawing = false;
-let lastX = 0;
-let lastY = 0;
+backgroundImage.onload = function() {
+    canvas.width = backgroundImage.width;
+    canvas.height = backgroundImage.height;
+
+    context.drawImage(backgroundImage, 0, 0);
+};
+
+let painting = false;
+let erasing = false;
 
 // Ρύθμιση πινέλου
 ctx.strokeStyle = colorPicker.value;
