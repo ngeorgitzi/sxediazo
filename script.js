@@ -1,78 +1,67 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById('drawing-canvas');
+const context = canvas.getContext('2d');
 
-let painting = false;
-let backgroundImage = new Image();
-
-// Χρώμα και πάχος γραμμής
-let currentColor = '#000000';
-let currentLineWidth = 5;
-
-// Επιλογή χρώματος και πάχους
-const colorPicker = document.getElementById('colorPicker');
-const lineWidthPicker = document.getElementById('lineWidthPicker');
-
-colorPicker.addEventListener('change', (e) => {
-    currentColor = e.target.value;
-});
-
-lineWidthPicker.addEventListener('change', (e) => {
-    currentLineWidth = e.target.value;
-});
-
-// Φόρτωση της εικόνας στο καμβά
+const backgroundImage = new Image();
 backgroundImage.src = 'page.png';
+
 backgroundImage.onload = function() {
     canvas.width = backgroundImage.width;
     canvas.height = backgroundImage.height;
-    ctx.drawImage(backgroundImage, 0, 0);
+
+    context.drawImage(backgroundImage, 0, 0);
 };
 
-// Ξεκινάμε ζωγραφική
+let painting = false;
+let erasing = false;
+
 function startPosition(e) {
-    e.preventDefault();
+    if (erasing) {
+        context.globalCompositeOperation = 'destination-out'; // Χρησιμοποιεί τη λειτουργία destination-out για σβήσιμο
+    } else {
+        context.globalCompositeOperation = 'source-over'; // Χρησιμοποιεί τη λειτουργία source-over για σχεδίαση
+    }
+
     painting = true;
     draw(e);
 }
 
-// Τελειώνουμε ζωγραφική
-function endPosition(e) {
-    e.preventDefault();
+function endPosition() {
     painting = false;
-    ctx.beginPath();
+    context.beginPath();
 }
 
-// Σχεδιάζουμε
 function draw(e) {
     if (!painting) return;
 
-    e.preventDefault();
+    context.lineWidth = document.getElementById('brush-size').value;
+    context.lineCap = 'round';
+    context.strokeStyle = erasing ? '#FFFFFF' : document.getElementById('brush-color').value;
 
-    let x, y;
-    if (e.type.startsWith('mouse')) {
-        x = e.clientX - canvas.getBoundingClientRect().left;
-        y = e.clientY - canvas.getBoundingClientRect().top;
-    } else if (e.type.startsWith('touch')) {
-        x = e.touches[0].clientX - canvas.getBoundingClientRect().left;
-        y = e.touches[0].clientY - canvas.getBoundingClientRect().top;
-    }
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-    ctx.lineWidth = currentLineWidth;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = currentColor;
-
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+    context.lineTo(x, y);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(x, y);
 }
 
-// Mouse Events
 canvas.addEventListener('mousedown', startPosition);
 canvas.addEventListener('mouseup', endPosition);
 canvas.addEventListener('mousemove', draw);
 
-// Touch Events
-canvas.addEventListener('touchstart', startPosition);
-canvas.addEventListener('touchend', endPosition);
-canvas.addEventListener('touchmove', draw);
+// Προσθήκη λειτουργικότητας για το κουμπί καθαρισμού
+const clearButton = document.getElementById('clear-button');
+
+clearButton.addEventListener('click', function() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(backgroundImage, 0, 0);
+});
+
+// Προσθήκη λειτουργικότητας για το toggle κουμπί σβήσιμου
+const eraseToggle = document.getElementById('erase-toggle');
+
+eraseToggle.addEventListener('change', function() {
+    erasing = eraseToggle.checked;
+});
