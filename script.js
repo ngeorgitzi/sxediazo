@@ -14,72 +14,80 @@ backgroundImage.onload = function() {
 let painting = false;
 let erasing = false;
 
-// Ρύθμιση πινέλου
-ctx.strokeStyle = colorPicker.value;
-ctx.lineWidth = sizePicker.value;
-ctx.lineCap = 'round';
+function startPosition(e) {
+    if (erasing) {
+        context.globalCompositeOperation = 'destination-out'; // Χρησιμοποιεί τη λειτουργία destination-out για σβήσιμο
+    } else {
+        context.globalCompositeOperation = 'source-over'; // Χρησιμοποιεί τη λειτουργία source-over για σχεδίαση
+    }
 
-// Ενημέρωση χρώματος και μεγέθους
-colorPicker.addEventListener('input', function() {
-  ctx.strokeStyle = this.value;
-});
-
-sizePicker.addEventListener('input', function() {
-  ctx.lineWidth = this.value;
-});
-
-// Ποντίκι
-canvas.addEventListener('mousedown', (e) => {
-  drawing = true;
-  [lastX, lastY] = [e.offsetX, e.offsetY];
-});
-
-canvas.addEventListener('mousemove', (e) => {
-  if (!drawing) return;
-  drawLine(e.offsetX, e.offsetY);
-});
-
-canvas.addEventListener('mouseup', () => drawing = false);
-canvas.addEventListener('mouseout', () => drawing = false);
-
-// Touch (για κινητά)
-canvas.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  drawing = true;
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  [lastX, lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
-}, { passive: false });
-
-canvas.addEventListener('touchmove', (e) => {
-  e.preventDefault();
-  if (!drawing) return;
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  const x = touch.clientX - rect.left;
-  const y = touch.clientY - rect.top;
-  drawLine(x, y);
-}, { passive: false });
-
-canvas.addEventListener('touchend', () => drawing = false);
-
-function drawLine(x, y) {
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(x, y);
-  ctx.stroke();
-  [lastX, lastY] = [x, y];
+    painting = true;
+    draw(e);
 }
 
-// Καθαρισμός Καμβά
-clearButton.addEventListener('click', () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function endPosition() {
+    painting = false;
+    context.beginPath();
+}
+
+function draw(e) {
+    if (!painting) return;
+
+    context.lineWidth = document.getElementById('brush-size').value;
+    context.lineCap = 'round';
+    context.strokeStyle = erasing ? '#FFFFFF' : document.getElementById('brush-color').value;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    context.lineTo(x, y);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(x, y);
+}
+
+canvas.addEventListener('mousedown', startPosition);
+canvas.addEventListener('mouseup', endPosition);
+canvas.addEventListener('mousemove', draw);
+
+// --- Touch events για κινητά ---
+
+canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault(); // Σταματάει το scroll όταν ζωγραφίζουμε
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    lastX = touch.clientX - rect.left;
+    lastY = touch.clientY - rect.top;
+    drawing = true;
+}, { passive: false });
+
+canvas.addEventListener('touchmove', function(e) {
+    e.preventDefault(); // Σταματάει το scroll όταν ζωγραφίζουμε
+    if (!drawing) return;
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    draw(x, y);
+}, { passive: false });
+
+canvas.addEventListener('touchend', function(e) {
+    drawing = false;
 });
 
-// Αποθήκευση ως Εικόνα
-saveButton.addEventListener('click', () => {
-  const link = document.createElement('a');
-  link.download = 'zografia.png';
-  link.href = canvas.toDataURL();
-  link.click();
+
+// Προσθήκη λειτουργικότητας για το κουμπί καθαρισμού
+const clearButton = document.getElementById('clear-button');
+
+clearButton.addEventListener('click', function() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(backgroundImage, 0, 0);
+});
+
+// Προσθήκη λειτουργικότητας για το toggle κουμπί σβήσιμου
+const eraseToggle = document.getElementById('erase-toggle');
+
+eraseToggle.addEventListener('change', function() {
+    erasing = eraseToggle.checked;
 });
