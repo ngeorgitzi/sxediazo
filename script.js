@@ -14,6 +14,27 @@ backgroundImage.onload = function() {
 let painting = false;
 let erasing = false;
 
+// Υποστήριξη touch events
+canvas.addEventListener('touchstart', startTouch, false);
+canvas.addEventListener('touchend', endTouch, false);
+canvas.addEventListener('touchmove', moveTouch, false);
+
+function startTouch(e) {
+    e.preventDefault();
+    startPosition(e.touches[0]);
+}
+
+function moveTouch(e) {
+    e.preventDefault();
+    draw(e.touches[0]);
+}
+
+function endTouch(e) {
+    e.preventDefault();
+    endPosition();
+}
+
+
 function startPosition(e) {
     if (erasing) {
         context.globalCompositeOperation = 'destination-out'; // Χρησιμοποιεί τη λειτουργία destination-out για σβήσιμο
