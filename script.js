@@ -1,126 +1,78 @@
-const canvas = document.getElementById('drawing-canvas');
-const context = canvas.getContext('2d');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
-const backgroundImage = new Image();
+let painting = false;
+let backgroundImage = new Image();
+
+// Χρώμα και πάχος γραμμής
+let currentColor = '#000000';
+let currentLineWidth = 5;
+
+// Επιλογή χρώματος και πάχους
+const colorPicker = document.getElementById('colorPicker');
+const lineWidthPicker = document.getElementById('lineWidthPicker');
+
+colorPicker.addEventListener('change', (e) => {
+    currentColor = e.target.value;
+});
+
+lineWidthPicker.addEventListener('change', (e) => {
+    currentLineWidth = e.target.value;
+});
+
+// Φόρτωση της εικόνας στο καμβά
 backgroundImage.src = 'page.png';
-
 backgroundImage.onload = function() {
     canvas.width = backgroundImage.width;
     canvas.height = backgroundImage.height;
-
-    context.drawImage(backgroundImage, 0, 0);
+    ctx.drawImage(backgroundImage, 0, 0);
 };
 
-let painting = false;
-let erasing = false;
-let drawing = false;
-let lastX = 0;
-let lastY = 0;
-
+// Ξεκινάμε ζωγραφική
 function startPosition(e) {
-    if (erasing) {
-        context.globalCompositeOperation = 'destination-out'; // Χρησιμοποιεί τη λειτουργία destination-out για σβήσιμο
-    } else {
-        context.globalCompositeOperation = 'source-over'; // Χρησιμοποιεί τη λειτουργία source-over για σχεδίαση
-    }
-
+    e.preventDefault();
     painting = true;
     draw(e);
 }
 
-function endPosition() {
+// Τελειώνουμε ζωγραφική
+function endPosition(e) {
+    e.preventDefault();
     painting = false;
-    context.beginPath();
+    ctx.beginPath();
 }
 
-// --- Touch events για κινητά ---
-
-canvas.addEventListener('touchstart', function(e) {
-    e.preventDefault(); // Σταματάει το scroll όταν ζωγραφίζουμε
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    lastX = touch.clientX - rect.left;
-    lastY = touch.clientY - rect.top;
-    drawing = true;
-}, { passive: false });
-
-canvas.addEventListener('touchmove', function(e) {
-    e.preventDefault(); // Σταματάει το scroll όταν ζωγραφίζουμε
-    if (!drawing) return;
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    draw(x, y);
-}, { passive: false });
-
-canvas.addEventListener('touchend', function(e) {
-    drawing = false;
-});
-
+// Σχεδιάζουμε
 function draw(e) {
     if (!painting) return;
 
-    context.lineWidth = document.getElementById('brush-size').value;
-    context.lineCap = 'round';
-    context.strokeStyle = erasing ? '#FFFFFF' : document.getElementById('brush-color').value;
+    e.preventDefault();
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    let x, y;
+    if (e.type.startsWith('mouse')) {
+        x = e.clientX - canvas.getBoundingClientRect().left;
+        y = e.clientY - canvas.getBoundingClientRect().top;
+    } else if (e.type.startsWith('touch')) {
+        x = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+        y = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+    }
 
-    context.lineTo(x, y);
-    context.stroke();
-    context.beginPath();
-    context.moveTo(x, y);
+    ctx.lineWidth = currentLineWidth;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = currentColor;
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
 }
 
+// Mouse Events
 canvas.addEventListener('mousedown', startPosition);
 canvas.addEventListener('mouseup', endPosition);
 canvas.addEventListener('mousemove', draw);
 
-// Προσθήκη λειτουργικότητας για το κουμπί καθαρισμού
-const clearButton = document.getElementById('clear-button');
-
-clearButton.addEventListener('click', function() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(backgroundImage, 0, 0);
-});
-
-// Προσθήκη λειτουργικότητας για το toggle κουμπί σβήσιμου
-const eraseToggle = document.getElementById('erase-toggle');
-
-eraseToggle.addEventListener('change', function() {
-    erasing = eraseToggle.checked;
-});
-
-
-
-// --- Touch Events Support ---
-canvas.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const mouseEvent = new MouseEvent('mousedown', {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-    });
-    canvas.dispatchEvent(mouseEvent);
-}, false);
-
-canvas.addEventListener('touchmove', function(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const mouseEvent = new MouseEvent('mousemove', {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-    });
-    canvas.dispatchEvent(mouseEvent);
-}, false);
-
-canvas.addEventListener('touchend', function(e) {
-    e.preventDefault();
-    const mouseEvent = new MouseEvent('mouseup', {});
-    canvas.dispatchEvent(mouseEvent);
-}, false);
-// --- End of Touch Events Support ---
-
+// Touch Events
+canvas.addEventListener('touchstart', startPosition);
+canvas.addEventListener('touchend', endPosition);
+canvas.addEventListener('touchmove', draw);
