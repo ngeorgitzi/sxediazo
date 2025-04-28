@@ -27,3 +27,7 @@ body {
     right: 10px;
     z-index: 2;
 }
+
+canvas {
+    touch-action: none;
+}
