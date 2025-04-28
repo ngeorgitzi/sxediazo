@@ -4,6 +4,13 @@ const context = canvas.getContext('2d');
 const backgroundImage = new Image();
 backgroundImage.src = 'page.png';
 
+// Προσθήκη ΔΗΛΩΣΕΩΝ που έλειπαν:
+let painting = false;
+let erasing = false;
+let drawing = false;
+let lastX = 0;
+let lastY = 0;
+
 backgroundImage.onload = function() {
     canvas.width = backgroundImage.width;
     canvas.height = backgroundImage.height;
