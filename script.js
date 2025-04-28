@@ -93,3 +93,34 @@ const eraseToggle = document.getElementById('erase-toggle');
 eraseToggle.addEventListener('change', function() {
     erasing = eraseToggle.checked;
 });
+
+
+
+// --- Touch Events Support ---
+canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent('mousedown', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
+}, false);
+
+canvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent('mousemove', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
+}, false);
+
+canvas.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    const mouseEvent = new MouseEvent('mouseup', {});
+    canvas.dispatchEvent(mouseEvent);
+}, false);
+// --- End of Touch Events Support ---
+
