@@ -4,13 +4,6 @@ const context = canvas.getContext('2d');
 const backgroundImage = new Image();
 backgroundImage.src = 'page.png';
 
-// Προσθήκη ΔΗΛΩΣΕΩΝ που έλειπαν:
-let painting = false;
-let erasing = false;
-let drawing = false;
-let lastX = 0;
-let lastY = 0;
-
 backgroundImage.onload = function() {
     canvas.width = backgroundImage.width;
     canvas.height = backgroundImage.height;
@@ -20,6 +13,9 @@ backgroundImage.onload = function() {
 
 let painting = false;
 let erasing = false;
+let drawing = false;
+let lastX = 0;
+let lastY = 0;
 
 function startPosition(e) {
     if (erasing) {
@@ -36,27 +32,6 @@ function endPosition() {
     painting = false;
     context.beginPath();
 }
-
-function draw(e) {
-    if (!painting) return;
-
-    context.lineWidth = document.getElementById('brush-size').value;
-    context.lineCap = 'round';
-    context.strokeStyle = erasing ? '#FFFFFF' : document.getElementById('brush-color').value;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    context.lineTo(x, y);
-    context.stroke();
-    context.beginPath();
-    context.moveTo(x, y);
-}
-
-canvas.addEventListener('mousedown', startPosition);
-canvas.addEventListener('mouseup', endPosition);
-canvas.addEventListener('mousemove', draw);
 
 // --- Touch events για κινητά ---
 
@@ -83,6 +58,26 @@ canvas.addEventListener('touchend', function(e) {
     drawing = false;
 });
 
+function draw(e) {
+    if (!painting) return;
+
+    context.lineWidth = document.getElementById('brush-size').value;
+    context.lineCap = 'round';
+    context.strokeStyle = erasing ? '#FFFFFF' : document.getElementById('brush-color').value;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    context.lineTo(x, y);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(x, y);
+}
+
+canvas.addEventListener('mousedown', startPosition);
+canvas.addEventListener('mouseup', endPosition);
+canvas.addEventListener('mousemove', draw);
 
 // Προσθήκη λειτουργικότητας για το κουμπί καθαρισμού
 const clearButton = document.getElementById('clear-button');
