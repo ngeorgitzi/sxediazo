@@ -1,33 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="el">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Σχεδίασε τον δικό σου ιστότοπο</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ζωγραφική</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial;
+    }
+    canvas {
+      border: 2px solid black;
+      background: white;
+      touch-action: none; /* Σημαντικό! */
+    }
+    #toolbar {
+      margin: 10px;
+    }
+  </style>
 </head>
-
 <body>
-<h1>Σχεδίασε τον δικτυακό σου τόπο<center> </h1> <a href="info.html" target="_blank">
-    <img src="i.jpg" alt="Πληροφορίες" width="30" height="30">
-</a>
-<h3>Επίλεξε μέγεθος και χρώμα πινέλου και σχεδίασε τον δικτυακό σου τόπο. </h3>   
- <h3>Ενεργοποίησε τη σβήστρα για να σβήσεις ή καθάρισε όλο τον καμβά σου. </h3>   
-<div id="canvas-container">
-        <canvas id="drawing-canvas"></canvas>
-        
-    </div>
 
-    <div id="controls">
-        <label for="brush-size">Μέγεθος Πινέλου:</label>
-        <input type="range" id="brush-size" min="1" max="50" value="10">
-        <label for="brush-color">Χρώμα Πινέλου:</label>
-        <input type="color" id="brush-color" value="#000000">
-        <button id="clear-button">Καθαρισμός Καμβά</button>
-        <label for="erase-toggle">Σβήστρα:</label>
-        <input type="checkbox" id="erase-toggle">
-    </div>
+<h1>Η Ζωγραφιά μου</h1>
 
-    <script src="script.js"></script>
+<div id="toolbar">
+  <input type="color" id="colorPicker" value="#000000">
+  <input type="range" id="sizePicker" min="1" max="50" value="5">
+  <button id="clearButton">Καθαρισμός</button>
+</div>
+
+<canvas id="canvas" width="800" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const colorPicker = document.getElementById('colorPicker');
+const sizePicker = document.getElementById('sizePicker');
+const clearButton = document.getElementById('clearButton');
+
+let drawing = false;
+let lastX = 0;
+let lastY = 0;
+
+// Ενημέρωση εργαλείων
+colorPicker.addEventListener('input', () => ctx.strokeStyle = colorPicker.value);
+sizePicker.addEventListener('input', () => ctx.lineWidth = sizePicker.value);
+
+// Ποντίκι
+canvas.addEventListener('mousedown', (e) => {
+  drawing = true;
+  [lastX, lastY] = [e.offsetX, e.offsetY];
+});
+canvas.addEventListener('mousemove', (e) => {
+  if (!drawing) return;
+  draw(e.offsetX, e.offsetY);
+});
+canvas.addEventListener('mouseup', () => drawing = false);
+canvas.addEventListener('mouseout', () => drawing = false);
+
+// Touch (για κινητά)
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  lastX = touch.clientX - rect.left;
+  lastY = touch.clientY - rect.top;
+  drawing = true;
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  if (!drawing) return;
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+  draw(x, y);
+}, { passive: false });
+
+canvas.addEventListener('touchend', () => drawing = false);
+
+function draw(x, y) {
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  [lastX, lastY] = [x, y];
+}
+
+// Καθαρισμός
+clearButton.addEventListener('click', () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+</script>
+
 </body>
 </html>
